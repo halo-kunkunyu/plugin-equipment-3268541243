@@ -1,6 +1,24 @@
 apiVersion: v1alpha1
 kind: Role
 metadata:
+  name: equipment-public-apis
+  labels:
+    halo.run/hidden: "true"
+    halo.run/role-template: "true"
+    rbac.authorization.halo.run/aggregate-to-anonymous: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "Equipment"
+    rbac.authorization.halo.run/display-name: "Equipment Public APIs"
+rules:
+  - apiGroups: [ "api.equipment.kunkunyu.com" ]
+    resources: [ "*" ]
+    verbs: [ "*" ]
+
+---
+
+apiVersion: v1alpha1
+kind: Role
+metadata:
   name: role-template-equipment-view
   labels:
     halo.run/role-template: "true"

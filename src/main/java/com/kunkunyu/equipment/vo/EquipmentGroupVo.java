@@ -19,11 +19,12 @@ public class EquipmentGroupVo implements ExtensionVoOperator {
     
     List<EquipmentVo> equipments;
     
-    public static EquipmentGroupVoBuilder from(EquipmentGroup EquipmentGroup) {
+    public static EquipmentGroupVo from(EquipmentGroup EquipmentGroup) {
         return EquipmentGroupVo.builder()
             .metadata(EquipmentGroup.getMetadata())
             .spec(EquipmentGroup.getSpec())
             .status(EquipmentGroup.getStatusOrDefault())
-            .equipments(List.of());
+            .equipments(List.of())
+            .build();
     }
 }

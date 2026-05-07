@@ -3,6 +3,7 @@ package com.kunkunyu.equipment.finders.impl;
 import static org.springframework.data.domain.Sort.Order.asc;
 import static org.springframework.data.domain.Sort.Order.desc;
 
+import com.kunkunyu.equipment.finders.EquipmentPublicQueryService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
@@ -13,8 +14,6 @@ import run.halo.app.extension.PageRequestImpl;
 import run.halo.app.extension.ReactiveExtensionClient;
 import run.halo.app.extension.index.query.Queries;
 import run.halo.app.theme.finders.Finder;
-import com.kunkunyu.equipment.Equipment;
-import com.kunkunyu.equipment.EquipmentGroup;
 import com.kunkunyu.equipment.finders.EquipmentFinder;
 import com.kunkunyu.equipment.vo.EquipmentGroupVo;
 import com.kunkunyu.equipment.vo.EquipmentVo;
@@ -23,14 +22,19 @@ import com.kunkunyu.equipment.vo.EquipmentVo;
 public class EquipmentFInderImpl implements EquipmentFinder {
     private final ReactiveExtensionClient client;
 
-    public EquipmentFInderImpl(ReactiveExtensionClient client) {
+    private final EquipmentPublicQueryService equipmentPublicQueryService;
+
+    public EquipmentFInderImpl(ReactiveExtensionClient client,
+        EquipmentPublicQueryService equipmentPublicQueryService) {
         this.client = client;
+        this.equipmentPublicQueryService = equipmentPublicQueryService;
     }
 
     @Override
     public Flux<EquipmentVo> listAll() {
-        return this.client.listAll(Equipment.class, ListOptions.builder().build(), defaultSort())
-            .map(EquipmentVo::from);
+        return equipmentPublicQueryService.listEquipments(ListOptions.builder().build(),
+                PageRequestImpl.of(1, Integer.MAX_VALUE, defaultSort()))
+            .flatMapIterable(ListResult::getItems);
     }
 
     @Override
@@ -44,19 +48,13 @@ public class EquipmentFInderImpl implements EquipmentFinder {
     }
 
     private Mono<ListResult<EquipmentVo>> pageEquipment(Integer page, Integer size, String group) {
-        var builder = ListOptions.builder();
+        var options = ListOptions.builder();
         if (StringUtils.isNotEmpty(group)) {
-            builder.andQuery(Queries.equal("spec.groupName", group));
+            options.andQuery(Queries.equal("spec.groupName", group));
         }
-        return client.listBy(Equipment.class, builder.build(),
-                PageRequestImpl.of(page, size, defaultSort()))
-            .flatMap(listResult -> Flux.fromStream(listResult.get())
-                .map(EquipmentVo::from)
-                .collectList()
-                .map(list -> new ListResult<>(
-                    listResult.getPage(), listResult.getSize(), listResult.getTotal(), list
-                ))
-            );
+
+        return equipmentPublicQueryService.listEquipments(options.build(),
+            PageRequestImpl.of(page, size, defaultSort()));
     }
 
     @Override
@@ -64,23 +62,33 @@ public class EquipmentFInderImpl implements EquipmentFinder {
         var options = ListOptions.builder()
             .andQuery(Queries.equal("spec.groupName", groupName))
             .build();
-        return client.listAll(Equipment.class, options, defaultSort()).map(EquipmentVo::from);
+        return equipmentPublicQueryService.listEquipments(options,
+                PageRequestImpl.of(1, Integer.MAX_VALUE, defaultSort()))
+            .flatMapIterable(ListResult::getItems);
     }
 
     @Override
     public Flux<EquipmentGroupVo> groupBy() {
-        return this.client.listAll(EquipmentGroup.class, ListOptions.builder().build(), defaultSort())
+
+        return equipmentPublicQueryService.listGroups(ListOptions.builder().build(),
+                PageRequestImpl.of(1, Integer.MAX_VALUE, defaultSort()))
+            .flatMapIterable(ListResult::getItems)
             .concatMap(group -> {
-                var builder = EquipmentGroupVo.from(group);
-                return this.listBy(group.getMetadata().getName())
-                    .collectList()
-                    .doOnNext(equipments -> {
-                        EquipmentGroup.EquipmentGroupStatus status = group.getStatus();
-                        status.setEquipmentCount(equipments.size());
-                        builder.status(status);
-                        builder.equipments(equipments);
-                    })
-                    .then(Mono.fromSupplier(builder::build));
+                String groupName = group.getMetadata().getName();
+                return equipmentPublicQueryService.listEquipments(
+                        ListOptions.builder()
+                            .andQuery(Queries.equal("spec.groupName", groupName))
+                            .build(),
+                        PageRequestImpl.of(1, Integer.MAX_VALUE, defaultSort()))
+                    .map(equipments -> {
+                        var status = group.getStatus();
+                        return EquipmentGroupVo.builder()
+                            .metadata(group.getMetadata())
+                            .spec(group.getSpec())
+                            .status(status)
+                            .equipments(equipments.getItems())
+                            .build();
+                    });
             });
     }
 
@@ -91,5 +99,4 @@ public class EquipmentFInderImpl implements EquipmentFinder {
             asc("metadata.name")
         );
     }
-
 }
