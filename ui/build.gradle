@@ -5,6 +5,12 @@ plugins {
 
 group 'com.kunkunyu.equipment.ui'
 
+node {
+  version = '20.19.1'
+  pnpmVersion = '10.34.3'
+  download = true
+}
+
 tasks.register('pnpmBuild', PnpmTask) {
     group = 'build'
     description = 'Build the UI project using pnpm'

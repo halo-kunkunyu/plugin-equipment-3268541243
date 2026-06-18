@@ -1,6 +1,6 @@
 plugins {
-    id "io.freefair.lombok" version "8.13.1"
-    id "run.halo.plugin.devtools" version "0.6.1"
+    id "io.freefair.lombok" version "9.2.0"
+    id "run.halo.plugin.devtools" version "0.7.0"
     id 'java'
 }
 
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('run.halo.tools.platform:plugin:2.22.0-alpha.1')
+    implementation platform('run.halo.tools.platform:plugin:2.22.5')
     compileOnly 'run.halo.app:api'
 
     testImplementation 'run.halo.app:api'
@@ -46,6 +46,6 @@ tasks.named('classes') {
 }
 
 halo {
-    version = '2.22.0-alpha.1'
+    version = '2.25.1'
     debug = true
 }

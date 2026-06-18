@@ -114,7 +114,38 @@ const handleSaveEquipment = async () => {
           <FormKit name="cover" label="封面" type="attachment" :accepts="['image/*']"></FormKit>
           <FormKit name="url" label="装备地址" type="text" :accepts="['image/*']"></FormKit>
           <FormKit name="specification" label="装备规格" type="text" ></FormKit>
-          <FormKit name="description" label="描述" type="textarea"></FormKit>
+          <FormKit name="description" label="描述" type="code" language="html" height="200px"></FormKit>
+          <FormKit
+            name="itemDataList"
+            type="array"
+            label="属性列表"
+            addLabel="添加属性"
+            emptyText="没有属性"
+            :itemLabels="[
+              {
+                type: 'text',
+                label: '$value.name',
+              },
+              {
+                type: 'text',
+                label: '$value.value',
+              }
+            ]"
+          >
+            <FormKit
+              name="name"
+              type="text"
+              label="属性名称"
+              validation="required"
+            />
+            <FormKit
+              name="value"
+              type="text"
+              label="属性描述"
+              validation="required"
+            />
+          </FormKit>
+          
         </div>
       </div>
     </FormKit>

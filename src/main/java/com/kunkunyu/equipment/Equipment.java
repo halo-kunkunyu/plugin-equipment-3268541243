@@ -4,6 +4,7 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +40,19 @@ public class Equipment extends AbstractExtension {
 
         @Schema(requiredMode = REQUIRED, pattern = "^\\S+$")
         private String groupName;
+
+        private List<ItemData> itemDataList;
+    }
+
+
+    @Data
+    public static class ItemData {
+
+        @Schema(description = "属性")
+        private String name;
+
+        @Schema(description = "内容")
+        private String value;
     }
 
     @JsonIgnore

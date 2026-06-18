@@ -30,6 +30,12 @@ export interface EquipmentSpec {
   cover?: string;
   priority?: number;
   groupName: string;
+  itemDataList?: Array<ItemData>;
+}
+
+export interface ItemData {
+  name: string;
+  value: string;
 }
 
 export interface Equipment {
